@@ -4,22 +4,85 @@
 #include "kernel/fs.h"
 #include "kernel/fcntl.h"
 
+#define MAXVISITED 22
+
+int visited_inodes[MAXVISITED];
+int visited_count = 0;
+
+int 
+already_visited(int ino) 
+{
+  for(int i = 0; i < visited_count; i++) {
+    if(visited_inodes[i] == ino)
+      return 1;   // found
+  }
+  return 0;
+}
+
+void 
+mark_visited(int ino) 
+{
+  if(visited_count < MAXVISITED)
+    visited_inodes[visited_count++] = ino;
+}
+
+// KMP algorithim
+char* 
+find(const char *haystack, const char *needle) 
+{
+    int len = strlen(needle);
+    // empty string
+    if (len == 0) return (char*)haystack;
+
+    for (int i = 0; haystack[i]; i++) {
+        int j = 0;
+        while (j < len && haystack[i+j] == needle[j]) {
+            j++;
+        }
+        if (j == len) {
+            return (char*)&haystack[i]; // found
+        }
+    }
+    return 0; // not found
+}
+
 
 void
 count_in_file(char *word, char *path, int fd)
 {
         char buf[512];
-        int n;
+        int n, m;
         int word_count = 0;
         int len = strlen(word);
+	char *p, *q;
+        
+	m = 0;
+	// printf("searching for: [%s]\n", word);
+        while((n = read(fd, buf + m, sizeof(buf) - m -1)) > 0) {
+		m += n;
+		buf[m] = '\0';
+		p = buf;
+		// check each character till newline char
+		while ((q = strchr(p, '\n')) != 0) {
+			// changes newline to null terminator
+			*q = 0;
+			for (char *s = p; (s = find(s, word)) != 0; s++){
+				word_count++;
+				s += len - 1;
+			} 
 
-        while((n = read(fd, buf, sizeof(buf))) > 0) {
-                for (int i = 0; i <= n - len; i++) {
-                        if(strcmp(&buf[i], word) == 0) {
-                                word_count++;
-                        }
-                }
+			// restore newline
+			*q = '\n';
+			// move to next line
+			p = q + 1;
+		}
+		// handle leftover memory
+       		if (m > 0) {
+                	m -= p - buf;
+                	memmove(buf, p, m);
+        	}
         }
+
         printf("%s : %d\n", path, word_count);
 }
 
@@ -51,6 +114,13 @@ count(char *word, char *path)
                 count_in_file(word, path, fd);
                 break;
         case T_DIR:
+		if (already_visited(st.ino)) {
+    		// for cases as . or .. infinite looping can occur
+		// check if dir was vister already or not
+    			close(fd);
+    			return;
+  		}
+ 		mark_visited(st.ino);
                 // constructing the path
                 strcpy(buf, path);
                 p = buf+strlen(buf);
@@ -61,6 +131,15 @@ count(char *word, char *path)
                                 continue;
                         memmove(p, de.name, DIRSIZ);
                         p[DIRSIZ] = 0;
+
+			// check path to avoid console
+			struct stat st_entry;
+       	 		if (stat(buf, &st_entry) < 0)
+            		continue;
+
+        		if (st_entry.type == T_DEVICE)
+            		continue;
+
                         // call count on the new path
                         count(word, buf);
                 }
@@ -96,3 +175,5 @@ main(int argc, char *argv[])
         }
         exit(0);
 }
+
+
