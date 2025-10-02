@@ -9,6 +9,7 @@
 
 int visited_inodes[MAXVISITED];
 int visited_count = 0;
+int total_count = 0;
 
 int 
 already_visited(int ino) 
@@ -48,7 +49,7 @@ find(const char *haystack, const char *needle)
 }
 
 
-void
+int
 count_in_file(char *word, char *path, int fd)
 {
         char buf[512];
@@ -85,6 +86,7 @@ count_in_file(char *word, char *path, int fd)
         }
 
         printf("%s : %d\n", path, word_count);
+	return word_count;
 }
 
 
@@ -112,7 +114,7 @@ count(char *word, char *path)
         switch(st.type){
         case T_DEVICE:
         case T_FILE:
-                count_in_file(word, path, fd);
+                total_count += count_in_file(word, path, fd);
                 break;
         case T_DIR:
 		if (already_visited(st.ino)) {
@@ -174,6 +176,8 @@ main(int argc, char *argv[])
         for(int i = 2; i < argc; i++){
                 count(word, argv[i]);
         }
+	
+	printf("Total Count: %d\n", total_count);
         exit(0);
 }
 

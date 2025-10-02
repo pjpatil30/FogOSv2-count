@@ -144,8 +144,8 @@ UPROGS=\
 	$U/_forphan\
 	$U/_dorphan\
 
-fs.img: mkfs/mkfs README.md test1.txt $(UPROGS)
-	mkfs/mkfs fs.img README.md test1.txt $(UPROGS)
+fs.img: mkfs/mkfs README.md test1.txt test2.txt $(UPROGS)
+	mkfs/mkfs fs.img README.md test1.txt test2.txt $(UPROGS)
 
 -include kernel/*.d user/*.d
 
