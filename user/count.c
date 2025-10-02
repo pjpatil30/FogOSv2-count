@@ -6,6 +6,7 @@
 
 #define MAXVISITED 22
 
+
 int visited_inodes[MAXVISITED];
 int visited_count = 0;
 
