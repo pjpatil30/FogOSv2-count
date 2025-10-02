@@ -169,6 +169,7 @@ main(int argc, char *argv[])
         // for one file/directory
         if(argc == 2){
                 count(word, ".");
+		printf("Total Count: %d\n", total_count);
                 exit(0);
         }
 
