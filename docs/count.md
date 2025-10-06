@@ -10,7 +10,7 @@ Step 1: Build
 
 Step 2:
 - Inside the OS, simply choose one of the options stated below:
-	- count <word>
+	- count [word]
 		- This search will look for the given word within the current directory (".") and
 		will print out the total count.
 		- Output: 
@@ -20,14 +20,14 @@ Step 2:
 			./file4: 0
 			Total Count: 5
 
-	- count <word> <file>
+	- count [word] [file]
 		- This search will look for the given word within the stated file and print out the
 		total count. *Note* if the file does not exist, function will throw error and quit.
 		- Output:
 			file: 3
 			Total Count: 3
 
-	- count <word> <file1> <file2> ...
+	- count [word] [file1] [file2] ...
 		- This search will look for the given word within the multiple stated files and will
 		print out the total count.
 		- Output:
